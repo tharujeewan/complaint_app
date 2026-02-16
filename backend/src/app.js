@@ -12,7 +12,10 @@ app.use(express.json()); // Parse JSON body automatically
 // Mount auth routes at /api/auth
 app.use('/api/auth', authRoutes);
 const complaintsRoutes = require('./modules/complaints/complaints.route');
+const notificationsRoutes = require('./modules/notifications/notifications.route');
+
 app.use('/api/complaints', complaintsRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
 // Export app for server.js to run
 module.exports = app;
