@@ -35,7 +35,27 @@ const loginSchema = Joi.object({
   }),
 });
 
+// Schema for updating user (all fields optional)
+const updateUserSchema = Joi.object({
+  name: Joi.string().min(3).messages({
+    "string.base": "Name must be text",
+    "string.min": "Name must be at least 3 characters long",
+  }),
+
+  email: Joi.string().email().messages({
+    "string.email": "Please enter a valid email address",
+  }),
+
+  password: Joi.string().min(6).messages({
+    "string.min": "Password must be at least 6 characters long",
+  }),
+
+  role: Joi.string().valid("user", "admin"),
+});
+
 module.exports = {
+
   registerSchema,
   loginSchema,
+  updateUserSchema,
 };

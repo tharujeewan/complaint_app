@@ -25,4 +25,44 @@ const loginUser = async ({ email, password }) => {
   return { token };
 };
 
-module.exports = { registerUser, loginUser };
+// Get all users (excluding passwords)
+const getAllUsers = async () => {
+  const users = await User.findAll({
+    attributes: { exclude: ['password'] }
+  });
+  return users;
+};
+
+// Get a single user by ID
+const getUserById = async (id) => {
+  const user = await User.findByPk(id, {
+    attributes: { exclude: ['password'] }
+  });
+  if (!user) throw new Error('User not found');
+  return user;
+};
+
+// Update user by ID
+const updateUser = async (id, updates) => {
+  const user = await User.findByPk(id);
+  if (!user) throw new Error('User not found');
+
+  // If password is being updated, hash it
+  if (updates.password) {
+    updates.password = await bcrypt.hash(updates.password, 10);
+  }
+
+  await user.update(updates);
+  return { id: user.id, name: user.name, email: user.email, role: user.role };
+};
+
+// Delete user by ID
+const deleteUser = async (id) => {
+  const user = await User.findByPk(id);
+  if (!user) throw new Error('User not found');
+
+  await user.destroy();
+  return { message: 'User deleted successfully' };
+};
+
+module.exports = { registerUser, loginUser, getAllUsers, getUserById, updateUser, deleteUser };
