@@ -3,6 +3,8 @@ import '../../../core/constants/colors.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_textfield.dart';
 import '../../../app/routes.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,18 +18,25 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
-  bool _isLoading = false;
-
   void _handleLogin() async {
     if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      
-      // Simulate network delay
-      await Future.delayed(const Duration(seconds: 2));
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final success = await authProvider.login(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
       
       if (mounted) {
-        setState(() => _isLoading = false);
-        Navigator.pushReplacementNamed(context, AppRoutes.userHome);
+        if (success) {
+          Navigator.pushReplacementNamed(context, AppRoutes.userHome);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(authProvider.errorMessage ?? 'Login failed'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -74,10 +83,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 24),
                   
                   // Custom Button with Loading state built-in
-                  CustomButton(
-                    text: 'Login',
-                    isLoading: _isLoading,
-                    onPressed: _handleLogin,
+                  Consumer<AuthProvider>(
+                    builder: (context, auth, _) {
+                      return CustomButton(
+                        text: 'Login',
+                        isLoading: auth.isLoading,
+                        onPressed: _handleLogin,
+                      );
+                    },
                   ),
                   
                   const SizedBox(height: 16),

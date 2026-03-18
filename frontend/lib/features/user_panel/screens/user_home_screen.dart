@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
+import '../models/complaint_model.dart';
+import '../widgets/complaint_card.dart';
+import '../widgets/home_bottom_nav.dart';
+import 'issues_screen.dart';
+import 'map_screen.dart';
+import 'profile_screen.dart';
 
 class UserHomeScreen extends StatefulWidget {
   const UserHomeScreen({super.key});
@@ -11,48 +17,71 @@ class UserHomeScreen extends StatefulWidget {
 class _UserHomeScreenState extends State<UserHomeScreen> {
   int _currentIndex = 0;
 
+  // Tab screens (Issues, Map, Account are separate screens)
+  final List<Widget> _screens = const [
+    SizedBox.shrink(), // Home content handled separately below
+    IssuesScreen(),
+    MapScreen(),
+    ProfileScreen(),
+  ];
+
   // Sample complaint data
-  final List<Map<String, dynamic>> _complaints = [
-    {
-      'title': 'Massive Pothole on Main Road',
-      'date': 'Jul 17, 2025',
-      'status': 'PENDING',
-      'icon': Icons.warning_amber_rounded,
-    },
-    {
-      'title': 'Garbage on Sidewalk',
-      'date': 'Jul 17, 2025',
-      'status': 'IN PROGRESS',
-      'icon': Icons.delete_outline,
-    },
-    {
-      'title': 'Broken Streetlight near Chowk',
-      'date': 'Jul 19, 2025',
-      'status': 'RESOLVED',
-      'icon': Icons.lightbulb_outline,
-    },
-    {
-      'title': 'Issues: Pothole on Road',
-      'date': 'Jul 17, 2025',
-      'status': 'PENDING',
-      'icon': Icons.report_problem_outlined,
-    },
-    {
-      'title': 'Water Pipeline Leaking',
-      'date': 'Aug 02, 2025',
-      'status': 'IN PROGRESS',
-      'icon': Icons.water_drop_outlined,
-    },
+  final List<Complaint> _complaints = const [
+    Complaint(
+      title: 'Massive Pothole on Main Road',
+      date: 'Jul 17, 2025',
+      status: 'PENDING',
+      icon: Icons.warning_amber_rounded,
+    ),
+    Complaint(
+      title: 'Garbage on Sidewalk',
+      date: 'Jul 17, 2025',
+      status: 'IN PROGRESS',
+      icon: Icons.delete_outline,
+    ),
+    Complaint(
+      title: 'Broken Streetlight near Chowk',
+      date: 'Jul 19, 2025',
+      status: 'RESOLVED',
+      icon: Icons.lightbulb_outline,
+    ),
+    Complaint(
+      title: 'Issues: Pothole on Road',
+      date: 'Jul 17, 2025',
+      status: 'PENDING',
+      icon: Icons.report_problem_outlined,
+    ),
+    Complaint(
+      title: 'Water Pipeline Leaking',
+      date: 'Aug 02, 2025',
+      status: 'IN PROGRESS',
+      icon: Icons.water_drop_outlined,
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
+    // For non-home tabs, show the tab's own Scaffold
+    if (_currentIndex != 0) {
+      return Scaffold(
+        body: _screens[_currentIndex],
+        bottomNavigationBar: HomeBottomNav(
+          currentIndex: _currentIndex,
+          onTap: (i) => setState(() => _currentIndex = i),
+        ),
+      );
+    }
+
+    // Home tab
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: _buildAppBar(),
       body: _buildBody(),
       floatingActionButton: _buildFAB(),
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: HomeBottomNav(
+        currentIndex: _currentIndex,
+        onTap: (i) => setState(() => _currentIndex = i),
+      ),
     );
   }
 
@@ -113,7 +142,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           const SizedBox(height: 20),
 
           // Complaints List
-          ..._complaints.map((c) => _buildComplaintCard(c)),
+          ..._complaints.map((c) => ComplaintCard(complaint: c)),
         ],
       ),
     );
@@ -237,111 +266,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     );
   }
 
-  // ── Complaint Card ─────────────────────────────────────
-  Widget _buildComplaintCard(Map<String, dynamic> complaint) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Icon
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.primaryTeal.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              complaint['icon'] as IconData,
-              color: AppColors.primaryTeal,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 14),
-
-          // Title + Date
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  complaint['title'] as String,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Reported ${complaint['date']}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Status Badge
-          _buildStatusBadge(complaint['status'] as String),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge(String status) {
-    Color bgColor;
-    Color textColor;
-
-    switch (status) {
-      case 'PENDING':
-        bgColor = AppColors.warning.withOpacity(0.15);
-        textColor = const Color(0xFFE65100);
-        break;
-      case 'IN PROGRESS':
-        bgColor = AppColors.primaryTeal.withOpacity(0.15);
-        textColor = AppColors.primaryTealDark;
-        break;
-      case 'RESOLVED':
-        bgColor = AppColors.success.withOpacity(0.15);
-        textColor = const Color(0xFF2E7D32);
-        break;
-      default:
-        bgColor = Colors.grey.withOpacity(0.15);
-        textColor = Colors.grey;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          color: textColor,
-          letterSpacing: 0.3,
-        ),
-      ),
-    );
-  }
-
   // ── FAB ────────────────────────────────────────────────
   Widget _buildFAB() {
     return FloatingActionButton.extended(
@@ -355,43 +279,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           fontWeight: FontWeight.w600,
         ),
       ),
-    );
-  }
-
-  // ── Bottom Navigation ──────────────────────────────────
-  Widget _buildBottomNav() {
-    return BottomNavigationBar(
-      currentIndex: _currentIndex,
-      onTap: (i) => setState(() => _currentIndex = i),
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: AppColors.primaryTeal,
-      unselectedItemColor: AppColors.textSecondary,
-      backgroundColor: Colors.white,
-      elevation: 8,
-      selectedFontSize: 12,
-      unselectedFontSize: 12,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home_outlined),
-          activeIcon: Icon(Icons.home),
-          label: 'Home',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.list_alt_outlined),
-          activeIcon: Icon(Icons.list_alt),
-          label: 'Issues',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.map_outlined),
-          activeIcon: Icon(Icons.map),
-          label: 'Map',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_outline),
-          activeIcon: Icon(Icons.person),
-          label: 'Account',
-        ),
-      ],
     );
   }
 }

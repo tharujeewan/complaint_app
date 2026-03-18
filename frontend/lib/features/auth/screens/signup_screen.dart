@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_textfield.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -19,17 +21,32 @@ class _SignupScreenState extends State<SignupScreen> {
   
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
-  bool _isLoading = false;
-
   void _handleSignup() async {
     if (_formKey.currentState!.validate()) {
-
-      setState(() => _isLoading = true);
-      await Future.delayed(const Duration(seconds: 2));
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final success = await authProvider.register(
+        _nameController.text.trim(),
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
       
       if (mounted) {
-        setState(() => _isLoading = false);
-        // Navigate to Home
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Registration successful! Please login.'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+          Navigator.pop(context); // Go back to login screen
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(authProvider.errorMessage ?? 'Registration failed'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
@@ -65,6 +82,16 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
 
               CustomTextField(
+                label: 'Password',
+                controller: _passwordController,
+                prefixIcon: Icons.lock_outline,
+                isPassword: true,
+                isPasswordVisible: _isPasswordVisible,
+                onTogglePassword: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                validator: (v) => v!.length < 6 ? 'Min 6 chars' : null,
+              ),
+
+              CustomTextField(
                 label: 'Confirm Password',
                 controller: _confirmPasswordController,
                 prefixIcon: Icons.lock_outline,
@@ -78,21 +105,15 @@ class _SignupScreenState extends State<SignupScreen> {
                 },
               ),
 
-              CustomTextField(
-                label: 'Password',
-                controller: _passwordController,
-                prefixIcon: Icons.lock_outline,
-                isPassword: true,
-                isPasswordVisible: _isPasswordVisible,
-                onTogglePassword: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
-                validator: (v) => v!.length < 6 ? 'Min 6 chars' : null,
-              ),
-
               const SizedBox(height: 20),
-              CustomButton(
-                text: 'Sign Up',
-                isLoading: _isLoading,
-                onPressed: _handleSignup,
+              Consumer<AuthProvider>(
+                builder: (context, auth, _) {
+                  return CustomButton(
+                    text: 'Sign Up',
+                    isLoading: auth.isLoading,
+                    onPressed: _handleSignup,
+                  );
+                },
               ),
             ],
           ),
