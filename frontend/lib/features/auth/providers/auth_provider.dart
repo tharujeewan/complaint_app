@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../../../shared/models/user_model.dart';
 
 class AuthProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   bool _isAuthenticated = false;
-  Map<String, dynamic>? _userData;
+  UserModel? _user;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _isAuthenticated;
-  Map<String, dynamic>? get userData => _userData;
+  UserModel? get user => _user;
 
   AuthProvider() {
     _checkAuthStatus();
@@ -26,7 +27,8 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> fetchProfile() async {
     try {
-      _userData = await AuthService.getProfile();
+      final data = await AuthService.getProfile();
+      _user = UserModel.fromJson(data);
       notifyListeners();
     } catch (e) {
       _errorMessage = e.toString();
@@ -77,7 +79,7 @@ class AuthProvider with ChangeNotifier {
   Future<void> logout() async {
     await AuthService.logout();
     _isAuthenticated = false;
-    _userData = null;
+    _user = null;
     notifyListeners();
   }
 }

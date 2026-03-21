@@ -1,50 +1,24 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
-import '../models/complaint_model.dart';
+import '../../../shared/models/complaint_model.dart';
 import '../widgets/complaint_card.dart';
+import '../services/complaint_service.dart';
 
-class IssuesScreen extends StatelessWidget {
+class IssuesScreen extends StatefulWidget {
   const IssuesScreen({super.key});
 
-  // Sample issues data (filtered/all complaints)
-  static const List<Complaint> _allIssues = [
-    Complaint(
-      title: 'Massive Pothole on Main Road',
-      date: 'Jul 17, 2025',
-      status: 'PENDING',
-      icon: Icons.warning_amber_rounded,
-    ),
-    Complaint(
-      title: 'Garbage on Sidewalk',
-      date: 'Jul 17, 2025',
-      status: 'IN PROGRESS',
-      icon: Icons.delete_outline,
-    ),
-    Complaint(
-      title: 'Broken Streetlight near Chowk',
-      date: 'Jul 19, 2025',
-      status: 'RESOLVED',
-      icon: Icons.lightbulb_outline,
-    ),
-    Complaint(
-      title: 'Issues: Pothole on Road',
-      date: 'Jul 17, 2025',
-      status: 'PENDING',
-      icon: Icons.report_problem_outlined,
-    ),
-    Complaint(
-      title: 'Water Pipeline Leaking',
-      date: 'Aug 02, 2025',
-      status: 'IN PROGRESS',
-      icon: Icons.water_drop_outlined,
-    ),
-    Complaint(
-      title: 'Drainage Blockage',
-      date: 'Sep 10, 2025',
-      status: 'PENDING',
-      icon: Icons.water_drop_outlined,
-    ),
-  ];
+  @override
+  State<IssuesScreen> createState() => _IssuesScreenState();
+}
+
+class _IssuesScreenState extends State<IssuesScreen> {
+  late Future<List<ComplaintModel>> _complaintsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _complaintsFuture = ComplaintService.getComplaints();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,11 +43,32 @@ class IssuesScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _allIssues.length,
-        itemBuilder: (context, index) {
-          return ComplaintCard(complaint: _allIssues[index]);
+      body: FutureBuilder<List<ComplaintModel>>(
+        future: _complaintsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Error loading complaints',
+                style: TextStyle(color: AppColors.warning),
+              ),
+            );
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(
+              child: Text('No complaints found.'),
+            );
+          }
+          
+          final complaints = snapshot.data!;
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: complaints.length,
+            itemBuilder: (context, index) {
+              return ComplaintCard(complaint: complaints[index]);
+            },
+          );
         },
       ),
     );

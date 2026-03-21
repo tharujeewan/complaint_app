@@ -68,4 +68,41 @@ class ApiService {
       return http.delete(url, headers: headers);
     });
   }
+
+  static Future<http.StreamedResponse> postMultipart(
+    String endpoint, 
+    Map<String, String> fields, 
+    {List<int>? fileBytes, String? fileName, String fileField = 'photo'}
+  ) async {
+    final headers = await _getHeaders();
+    final url = Uri.parse('$baseUrl$endpoint');
+    
+    // We recreate the request handling manually for Streams because _handleRequest expects standard http.Response
+    Future<http.StreamedResponse> sendRequest(Map<String, String> authHeaders) async {
+      var request = http.MultipartRequest('POST', url);
+      request.headers.addAll(authHeaders);
+      request.fields.addAll(fields);
+      
+      if (fileBytes != null && fileName != null) {
+        request.files.add(http.MultipartFile.fromBytes(
+          fileField,
+          fileBytes,
+          filename: fileName,
+        ));
+      }
+      return await request.send();
+    }
+
+    var streamedResponse = await sendRequest(headers);
+
+    if (streamedResponse.statusCode == 401) {
+      final refreshSuccess = await AuthService.refreshToken();
+      if (refreshSuccess) {
+        final newHeaders = await _getHeaders();
+        streamedResponse = await sendRequest(newHeaders);
+      }
+    }
+    
+    return streamedResponse;
+  }
 }

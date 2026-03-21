@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
-import '../models/complaint_model.dart';
+import '../../../shared/models/complaint_model.dart';
 
 class ComplaintCard extends StatelessWidget {
-  final Complaint complaint;
+  final ComplaintModel complaint;
 
   const ComplaintCard({super.key, required this.complaint});
 
@@ -33,7 +33,7 @@ class ComplaintCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
-              complaint.icon,
+              _getIconForStatus(complaint.status),
               color: AppColors.primaryTeal,
               size: 24,
             ),
@@ -52,10 +52,12 @@ class ComplaintCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Reported ${complaint.date}',
+                  'Reported ${_formatDate(complaint.createdAt)}',
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,
@@ -76,7 +78,7 @@ class ComplaintCard extends StatelessWidget {
     Color bgColor;
     Color textColor;
 
-    switch (status) {
+    switch (status.toUpperCase()) {
       case 'PENDING':
         bgColor = AppColors.warning.withOpacity(0.15);
         textColor = const Color(0xFFE65100);
@@ -101,7 +103,7 @@ class ComplaintCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        status,
+        status.toUpperCase(),
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w700,
@@ -110,5 +112,24 @@ class ComplaintCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  IconData _getIconForStatus(String status) {
+    if (status.isEmpty) return Icons.report_problem_outlined;
+    switch (status.toUpperCase()) {
+      case 'PENDING':
+        return Icons.warning_amber_rounded;
+      case 'IN PROGRESS':
+        return Icons.construction;
+      case 'RESOLVED':
+        return Icons.check_circle_outline;
+      default:
+        return Icons.info_outline;
+    }
+  }
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'Unknown Date';
+    return '${date.day}/${date.month}/${date.year}';
   }
 }

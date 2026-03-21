@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
-import '../models/complaint_model.dart';
+import '../../../shared/models/complaint_model.dart';
 import '../widgets/complaint_card.dart';
 import '../widgets/home_bottom_nav.dart';
 import 'issues_screen.dart';
 import 'map_screen.dart';
 import 'profile_screen.dart';
+import 'create_complaint_screen.dart';
+import '../services/complaint_service.dart';
 
 class UserHomeScreen extends StatefulWidget {
   const UserHomeScreen({super.key});
@@ -25,39 +27,13 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     ProfileScreen(),
   ];
 
-  // Sample complaint data
-  final List<Complaint> _complaints = const [
-    Complaint(
-      title: 'Massive Pothole on Main Road',
-      date: 'Jul 17, 2025',
-      status: 'PENDING',
-      icon: Icons.warning_amber_rounded,
-    ),
-    Complaint(
-      title: 'Garbage on Sidewalk',
-      date: 'Jul 17, 2025',
-      status: 'IN PROGRESS',
-      icon: Icons.delete_outline,
-    ),
-    Complaint(
-      title: 'Broken Streetlight near Chowk',
-      date: 'Jul 19, 2025',
-      status: 'RESOLVED',
-      icon: Icons.lightbulb_outline,
-    ),
-    Complaint(
-      title: 'Issues: Pothole on Road',
-      date: 'Jul 17, 2025',
-      status: 'PENDING',
-      icon: Icons.report_problem_outlined,
-    ),
-    Complaint(
-      title: 'Water Pipeline Leaking',
-      date: 'Aug 02, 2025',
-      status: 'IN PROGRESS',
-      icon: Icons.water_drop_outlined,
-    ),
-  ];
+  late Future<List<ComplaintModel>> _complaintsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _complaintsFuture = ComplaintService.getComplaints();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -142,7 +118,33 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           const SizedBox(height: 20),
 
           // Complaints List
-          ..._complaints.map((c) => ComplaintCard(complaint: c)),
+          FutureBuilder<List<ComplaintModel>>(
+            future: _complaintsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(
+                  child: Text(
+                    'Error loading complaints',
+                    style: TextStyle(color: AppColors.warning),
+                  ),
+                );
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: Text('No active issues reported yet.'),
+                  ),
+                );
+              }
+              
+              final complaints = snapshot.data!;
+              return Column(
+                children: complaints.take(5).map((c) => ComplaintCard(complaint: c)).toList(),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -269,7 +271,12 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   // ── FAB ────────────────────────────────────────────────
   Widget _buildFAB() {
     return FloatingActionButton.extended(
-      onPressed: () {},
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CreateComplaintScreen()),
+        );
+      },
       backgroundColor: AppColors.primaryTeal,
       icon: const Icon(Icons.add, color: Colors.white),
       label: const Text(
