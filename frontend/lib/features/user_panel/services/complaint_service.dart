@@ -51,4 +51,16 @@ class ComplaintService {
       throw Exception('Failed to load complaints from database');
     }
   }
+
+  static Future<bool> updateComplaintStatus(int id, String status) async {
+    final response = await ApiService.put('/complaints/$id/status', {
+      'status': status,
+    });
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      return decoded['success'] == true;
+    } else {
+      throw Exception('Failed to update complaint status');
+    }
+  }
 }

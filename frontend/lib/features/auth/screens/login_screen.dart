@@ -28,7 +28,11 @@ class _LoginScreenState extends State<LoginScreen> {
       
       if (mounted) {
         if (success) {
-          Navigator.pushReplacementNamed(context, AppRoutes.userHome);
+          if (authProvider.user?.role?.toLowerCase() == 'admin') {
+            Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard);
+          } else {
+            Navigator.pushReplacementNamed(context, AppRoutes.userHome);
+          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
