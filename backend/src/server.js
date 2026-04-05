@@ -1,15 +1,9 @@
-// src/server.js
-
-require('dotenv').config(); // Load environment variables from .env
-const app = require('./app'); // Import Express app
-
-// Use port from .env or default to 5000
-const PORT = process.env.PORT || 5000;
-
-// Start the server
+require('dotenv').config();
+const app = require('./app');
 const sequelize = require('./config/db');
 
-// Sync database and start server
+const PORT = process.env.PORT || 5000;
+
 sequelize.sync()
   .then(() => {
     console.log('✅ Database connected & synced');
@@ -19,4 +13,5 @@ sequelize.sync()
   })
   .catch((err) => {
     console.error('❌ Database connection failed:', err);
+    process.exit(1);
   });

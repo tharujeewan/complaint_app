@@ -1,6 +1,6 @@
 const User = require('./auth.model');
 const bcrypt = require('bcrypt');
-const { generateToken } = require('../../utils/jwt');
+const { generateAccessToken, generateRefreshToken, verifyToken } = require('../../utils/jwt');
 
 const registerUser = async ({ name, email, password }) => {
   const existingUser = await User.findOne({ where: { email } });
@@ -10,7 +10,11 @@ const registerUser = async ({ name, email, password }) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = await User.create({ name, email, password: hashedPassword });
-  return { id: user.id, name: user.name, email: user.email, role: user.role };
+  
+  const token = generateAccessToken({ id: user.id, role: user.role });
+  const refreshToken = generateRefreshToken({ id: user.id, role: user.role });
+  
+  return { token, refreshToken, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
 };
 
 const loginUser = async ({ email, password }) => {
@@ -20,9 +24,10 @@ const loginUser = async ({ email, password }) => {
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) throw new Error('Invalid credentials');
 
-  const token = generateToken({ id: user.id, role: user.role });
+  const token = generateAccessToken({ id: user.id, role: user.role });
+  const refreshToken = generateRefreshToken({ id: user.id, role: user.role });
 
-  return { token };
+  return { token, refreshToken, user: { id: user.id, name: user.name, email: user.email, role: user.role } };
 };
 
 // Get all users (excluding passwords)
@@ -65,4 +70,21 @@ const deleteUser = async (id) => {
   return { message: 'User deleted successfully' };
 };
 
-module.exports = { registerUser, loginUser, getAllUsers, getUserById, updateUser, deleteUser };
+// Refresh token service
+const refreshAuthToken = async (refreshToken) => {
+  if (!refreshToken) throw new Error('Refresh token is required');
+  try {
+    const decoded = verifyToken(refreshToken);
+    const user = await User.findByPk(decoded.id);
+    if (!user) throw new Error('User not found');
+    
+    const newAccessToken = generateAccessToken({ id: user.id, role: user.role });
+    const newRefreshToken = generateRefreshToken({ id: user.id, role: user.role });
+    
+    return { token: newAccessToken, refreshToken: newRefreshToken };
+  } catch (error) {
+    throw new Error('Invalid or expired refresh token');
+  }
+};
+
+module.exports = { registerUser, loginUser, getAllUsers, getUserById, updateUser, deleteUser, refreshAuthToken };

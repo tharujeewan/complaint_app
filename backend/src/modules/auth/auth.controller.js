@@ -1,67 +1,87 @@
 // src/modules/auth/auth.controller.js
 
 // Import service functions
-const { registerUser, loginUser, getAllUsers, getUserById, updateUser, deleteUser } = require('./auth.service');
+const { registerUser, loginUser, getAllUsers, getUserById, updateUser, deleteUser, refreshAuthToken } = require('./auth.service');
 
-// Controller for user registration
-const register = async (req, res) => {
+const register = async (req, res, next) => {
   try {
-    const user = await registerUser(req.body);   // Call service with request body
-    res.status(201).json({ success: true, user }); // Send success response
+    const data = await registerUser(req.body);
+    res.status(201).json({ success: true, ...data });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message }); // Send error
+    error.statusCode = 400;
+    next(error);
   }
 };
 
-// Controller for user login
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   try {
-    const data = await loginUser(req.body);     // Call login service
-    res.status(200).json({ success: true, ...data }); // Send token back
+    const data = await loginUser(req.body);
+    res.status(200).json({ success: true, ...data });
   } catch (error) {
-    res.status(401).json({ success: false, message: error.message }); // Send error
+    error.statusCode = 401;
+    next(error);
   }
 };
 
-// Controller to get all users
-const getAll = async (req, res) => {
+const getAll = async (req, res, next) => {
   try {
     const users = await getAllUsers();
     res.status(200).json({ success: true, users });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    error.statusCode = 500;
+    next(error);
   }
 };
 
-// Controller to get user by ID
-const getById = async (req, res) => {
+const getById = async (req, res, next) => {
   try {
     const user = await getUserById(req.params.id);
     res.status(200).json({ success: true, user });
   } catch (error) {
-    res.status(404).json({ success: false, message: error.message });
+    error.statusCode = 404;
+    next(error);
   }
 };
 
-// Controller to update user
-const update = async (req, res) => {
+const getMe = async (req, res, next) => {
+  try {
+    const user = await getUserById(req.user.id);
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    error.statusCode = 404;
+    next(error);
+  }
+};
+
+const update = async (req, res, next) => {
   try {
     const user = await updateUser(req.params.id, req.body);
     res.status(200).json({ success: true, user });
   } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
+    error.statusCode = 400;
+    next(error);
   }
 };
 
-// Controller to delete user
-const remove = async (req, res) => {
+const remove = async (req, res, next) => {
   try {
     const result = await deleteUser(req.params.id);
     res.status(200).json({ success: true, ...result });
   } catch (error) {
-    res.status(404).json({ success: false, message: error.message });
+    error.statusCode = 404;
+    next(error);
+  }
+};
+
+const refreshTokenHandler = async (req, res, next) => {
+  try {
+    const tokens = await refreshAuthToken(req.body.refreshToken);
+    res.status(200).json({ success: true, ...tokens });
+  } catch (error) {
+    error.statusCode = 401;
+    next(error);
   }
 };
 
 // Export controllers for routes to use
-module.exports = { register, login, getAll, getById, update, remove };
+module.exports = { register, login, getAll, getById, getMe, update, remove, refreshTokenHandler };

@@ -1,26 +1,31 @@
+// src/middlewares/validate.js
+const logger = require('../utils/logger');
+
+/**
+ * validate - Middleware to validate request body using Joi schema
+ * @param schema - Joi validation schema
+ */
 const validate = (schema) => (req, res, next) => {
-  const { error } = schema.validate(req.body, {
-    abortEarly: false, // return all errors
-  });
+  const { error } = schema.validate(req.body, { abortEarly: false });
 
   if (error) {
     const errorDetails = {};
-
     error.details.forEach((detail) => {
-      const field = detail.path[0];
-
-      // Store message separately for each field
-      errorDetails[field] = detail.message.replace(/"/g, "");
+      const field = detail.path.join('.') || detail.path[0]; // support nested fields
+      errorDetails[field] = detail.message.replace(/"/g, '');
     });
 
-    return res.status(400).json({
-      success: false,
-      message: "Validation Error",
-      errors: errorDetails,
-    });
+    const err = new Error('Validation Error');
+    err.statusCode = 400;
+    err.errors = errorDetails;
+
+    // Log validation error
+    logger.warn('Validation Error on %s %s: %o', req.method, req.originalUrl, errorDetails);
+
+    return next(err); // Pass to global error handler
   }
 
-  next();
+  next(); // Validation passed
 };
 
 module.exports = validate;

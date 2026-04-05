@@ -1,24 +1,40 @@
 // src/middlewares/auth.middleware.js
-
 const jwt = require('jsonwebtoken');
+const logger = require('../utils/logger');
 
-// Middleware to protect routes
+/**
+ * protect - Middleware to protect routes
+ * 1. Checks Authorization header for JWT token
+ * 2. Verifies token
+ * 3. Populates req.user if valid
+ */
 const protect = (req, res, next) => {
-  // Get token from Authorization header (Bearer <token>)
-  const token = req.headers.authorization?.split(' ')[1];
+  const authHeader = req.headers.authorization;
 
-  // If no token, return 401 Unauthorized
-  if (!token) return res.status(401).json({ message: 'Not authorized' });
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const error = new Error('Not authorized, no token provided');
+    error.statusCode = 401;
+    logger.warn('Unauthorized access attempt on %s %s', req.method, req.originalUrl);
+    return next(error);
+  }
+
+  const token = authHeader.split(' ')[1]?.trim();
 
   try {
-    // Verify token using JWT secret
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
-
-    // If valid, allow next middleware/controller
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
     next();
   } catch (error) {
-    // If token invalid, return 401
-    res.status(401).json({ message: 'Invalid token' });
+    if (error.name === 'TokenExpiredError') {
+      error.message = 'Token expired, please login again';
+      error.statusCode = 401;
+    } else if (error.name === 'JsonWebTokenError') {
+      error.message = 'Invalid token';
+      error.statusCode = 401;
+    }
+
+    logger.warn('JWT Error on %s %s: %s', req.method, req.originalUrl, error.message);
+    next(error);
   }
 };
 

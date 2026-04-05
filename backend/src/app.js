@@ -1,21 +1,28 @@
-// src/app.js
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
 
-const express = require('express');          // Import Express
-const cors = require('cors');                // Import CORS middleware
-const authRoutes = require('./modules/auth/auth.route'); // Import auth routes
+// Route imports
+const authRoutes = require('./modules/auth/auth.routes');
+const complaintRoutes = require('./modules/complaint/complaint.routes');
+const notificationRoutes = require('./modules/notification/notification.routes');
 
-const app = express(); // Create Express app instance
+// Middleware imports
+const { errorHandler } = require('./middlewares/error.middleware');
 
-app.use(cors());        // Enable CORS for all routes
-app.use(express.json()); // Parse JSON body automatically
+const app = express();
 
-// Mount auth routes at /api/auth
+// Global middleware
+app.use(cors());
+app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
+// API routes
 app.use('/api/auth', authRoutes);
-const complaintsRoutes = require('./modules/complaints/complaints.route');
-const notificationsRoutes = require('./modules/notifications/notifications.route');
+app.use('/api/complaints', complaintRoutes);
+app.use('/api/notifications', notificationRoutes);
 
-app.use('/api/complaints', complaintsRoutes);
-app.use('/api/notifications', notificationsRoutes);
+// Global error handler (must be last)
+app.use(errorHandler);
 
-// Export app for server.js to run
 module.exports = app;
