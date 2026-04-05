@@ -38,4 +38,19 @@ const protect = (req, res, next) => {
   }
 };
 
-module.exports = { protect };
+/**
+ * authorize - Middleware to block roles that are not permitted
+ */
+const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      const error = new Error(`Role '${req.user?.role || 'unknown'}' is not authorized to access this route`);
+      error.statusCode = 403;
+      logger.warn('Forbidden access attempt on %s %s by role %s', req.method, req.originalUrl, req.user?.role);
+      return next(error);
+    }
+    next();
+  };
+};
+
+module.exports = { protect, authorize };
