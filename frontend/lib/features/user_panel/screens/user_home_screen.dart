@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/colors.dart';
-import '../../../shared/models/complaint_model.dart';
+import '../providers/user_complaint_provider.dart';
 import '../widgets/complaint_card.dart';
 import '../widgets/home_bottom_nav.dart';
 import 'issues_screen.dart';
 import 'map_screen.dart';
 import 'profile_screen.dart';
 import 'create_complaint_screen.dart';
-import '../services/complaint_service.dart';
 
 class UserHomeScreen extends StatefulWidget {
   const UserHomeScreen({super.key});
@@ -27,12 +27,12 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     ProfileScreen(),
   ];
 
-  late Future<List<ComplaintModel>> _complaintsFuture;
-
   @override
   void initState() {
     super.initState();
-    _complaintsFuture = ComplaintService.getComplaints();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<UserComplaintProvider>().fetchMyComplaints();
+    });
   }
 
   @override
@@ -104,48 +104,59 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   // ── Body ───────────────────────────────────────────────
   Widget _buildBody() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Ward Header
-          _buildWardHeader(),
-          const SizedBox(height: 16),
+    return RefreshIndicator(
+      onRefresh: () => context.read<UserComplaintProvider>().fetchMyComplaints(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Ward Header
+            _buildWardHeader(),
+            const SizedBox(height: 16),
 
-          // Stats Row
-          _buildStatsRow(),
-          const SizedBox(height: 20),
+            // Stats Row
+            _buildStatsRow(),
+            const SizedBox(height: 20),
 
-          // Complaints List
-          FutureBuilder<List<ComplaintModel>>(
-            future: _complaintsFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(
-                  child: Text(
-                    'Error loading complaints',
-                    style: TextStyle(color: AppColors.warning),
-                  ),
-                );
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(
-                  child: Padding(
+            // Complaints List
+            Consumer<UserComplaintProvider>(
+              builder: (context, provider, child) {
+                if (provider.isLoading && provider.complaints.isEmpty) {
+                  return const Center(child: Padding(
                     padding: EdgeInsets.all(20.0),
-                    child: Text('No active issues reported yet.'),
-                  ),
+                    child: CircularProgressIndicator(),
+                  ));
+                } else if (provider.errorMessage != null && provider.complaints.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Text(
+                        provider.errorMessage!,
+                        style: const TextStyle(color: AppColors.warning),
+                      ),
+                    ),
+                  );
+                } else if (provider.complaints.isEmpty) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: Text('No active issues reported yet.'),
+                    ),
+                  );
+                }
+                
+                return Column(
+                  children: provider.complaints
+                    .take(5)
+                    .map((c) => ComplaintCard(complaint: c))
+                    .toList(),
                 );
-              }
-              
-              final complaints = snapshot.data!;
-              return Column(
-                children: complaints.take(5).map((c) => ComplaintCard(complaint: c)).toList(),
-              );
-            },
-          ),
-        ],
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -154,7 +165,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   Widget _buildWardHeader() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), // Reduced from 14 to 4
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4), 
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -168,7 +179,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       ),
       child: TextField(
         decoration: InputDecoration(
-          isDense: true, // Added isDense
+          isDense: true, 
           hintText: 'Search complaints',
           hintStyle: TextStyle(
             color: AppColors.textSecondary.withOpacity(0.7),
@@ -181,11 +192,11 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           prefixIconConstraints: const BoxConstraints(
             minWidth: 40,
             minHeight: 40,
-          ), // Added constraints to reduce icon padding
+          ), 
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
-            vertical: 10, // Reduced from 14 to 10
+            vertical: 10, 
           ),
         ),
       ),

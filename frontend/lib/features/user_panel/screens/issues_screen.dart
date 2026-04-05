@@ -1,24 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/colors.dart';
-import '../../../shared/models/complaint_model.dart';
+import '../providers/user_complaint_provider.dart';
 import '../widgets/complaint_card.dart';
-import '../services/complaint_service.dart';
 
-class IssuesScreen extends StatefulWidget {
+class IssuesScreen extends StatelessWidget {
   const IssuesScreen({super.key});
-
-  @override
-  State<IssuesScreen> createState() => _IssuesScreenState();
-}
-
-class _IssuesScreenState extends State<IssuesScreen> {
-  late Future<List<ComplaintModel>> _complaintsFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _complaintsFuture = ComplaintService.getComplaints();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,36 +25,41 @@ class _IssuesScreenState extends State<IssuesScreen> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            onPressed: () {
+              context.read<UserComplaintProvider>().fetchMyComplaints();
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.filter_list, color: Colors.white),
             onPressed: () {},
           ),
         ],
       ),
-      body: FutureBuilder<List<ComplaintModel>>(
-        future: _complaintsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: Consumer<UserComplaintProvider>(
+        builder: (context, provider, child) {
+          if (provider.isLoading && provider.complaints.isEmpty) {
             return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
+          } else if (provider.errorMessage != null && provider.complaints.isEmpty) {
             return Center(
               child: Text(
-                'Error loading complaints',
-                style: TextStyle(color: AppColors.warning),
+                provider.errorMessage!,
+                style: const TextStyle(color: AppColors.warning),
               ),
             );
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
-              child: Text('No complaints found.'),
-            );
+          } else if (provider.complaints.isEmpty) {
+            return const Center(child: Text('No complaints found.'));
           }
-          
-          final complaints = snapshot.data!;
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: complaints.length,
-            itemBuilder: (context, index) {
-              return ComplaintCard(complaint: complaints[index]);
-            },
+
+          return RefreshIndicator(
+            onRefresh: () => provider.fetchMyComplaints(),
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: provider.complaints.length,
+              itemBuilder: (context, index) {
+                return ComplaintCard(complaint: provider.complaints[index]);
+              },
+            ),
           );
         },
       ),

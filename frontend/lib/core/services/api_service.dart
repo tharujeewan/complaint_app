@@ -6,10 +6,10 @@ import '../../features/auth/services/auth_service.dart';
 
 class ApiService {
   // 🔁 Toggle this when switching device
-  static const bool isPhysicalDevice = true;
+  static const bool isPhysicalDevice = false;
 
   // 🔌 URLs
-  static const String _physicalBaseUrl = "http://192.168.1.4:5000/api";
+  static const String _physicalBaseUrl = "http://192.168.1.11:5000/api";
   static const String _emulatorBaseUrl = "http://10.0.2.2:5000/api";
 
   static String get baseUrl {

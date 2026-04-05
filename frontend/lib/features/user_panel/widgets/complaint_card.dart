@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
 import '../../../shared/models/complaint_model.dart';
+import '../screens/complaint_detail_screen.dart';
 
 class ComplaintCard extends StatelessWidget {
   final ComplaintModel complaint;
@@ -9,7 +10,16 @@ class ComplaintCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ComplaintDetailScreen(complaint: complaint),
+          ),
+        );
+      },
+      child: Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -70,6 +80,7 @@ class ComplaintCard extends StatelessWidget {
           // Status Badge
           _buildStatusBadge(complaint.status),
         ],
+      ),
       ),
     );
   }

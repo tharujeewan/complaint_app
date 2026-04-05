@@ -1,0 +1,10 @@
+﻿Analyzing frontend...                                           
+
+   info - Dangling library doc comment - lib\core\exceptions\typed_exceptions.dart:1:1 - dangling_library_doc_comments
+   info - The imported package 'http_parser' isn't a dependency of the importing package - lib\core\services\api_client.dart:4:8 - depend_on_referenced_packages
+   info - The imported package 'http_parser' isn't a dependency of the importing package - lib\core\services\api_service.dart:3:8 - depend_on_referenced_packages
+warning - Unused import: '../../../shared/models/user_model.dart' - lib\features\admin_panel\providers\admin_complaint_provider.dart:4:8 - unused_import
+warning - Unused import: 'dart:io' - lib\features\user_panel\services\complaint_service.dart:2:8 - unused_import
+   info - Use 'const' for final variables initialized to a constant value - lib\shared\widgets\complaint\complaint_photo_section.dart:36:5 - prefer_const_declarations
+warning - Unused import: 'package:frontend/main.dart' - test\widget_test.dart:3:8 - unused_import
+
