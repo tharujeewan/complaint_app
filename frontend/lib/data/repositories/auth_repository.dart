@@ -31,10 +31,10 @@ class AuthRepositoryImpl implements IAuthRepository {
     if (res.statusCode != 200) throw BadRequestException('Failed to login');
 
     final data = jsonDecode(res.body);
-    final response = ApiResponse<String>.fromJson(data, (json) => data['token']);
+    final response = ApiResponse<String>.fromJson(data, (json) => data['accessToken']);
     
-    if (response.success && data['token'] != null && data['refreshToken'] != null) {
-      await _tokenService.saveTokens(data['token'], data['refreshToken']);
+    if (response.success && data['accessToken'] != null && data['refreshToken'] != null) {
+      await _tokenService.saveTokens(data['accessToken'], data['refreshToken']);
     }
     
     return response;
@@ -53,10 +53,10 @@ class AuthRepositoryImpl implements IAuthRepository {
     if (res.statusCode != 201) throw BadRequestException('Failed to register');
 
     final data = jsonDecode(res.body);
-    final response = ApiResponse<String>.fromJson(data, (json) => data['token']);
+    final response = ApiResponse<String>.fromJson(data, (json) => data['accessToken']);
     
-    if (response.success && data['token'] != null && data['refreshToken'] != null) {
-      await _tokenService.saveTokens(data['token'], data['refreshToken']);
+    if (response.success && data['accessToken'] != null && data['refreshToken'] != null) {
+      await _tokenService.saveTokens(data['accessToken'], data['refreshToken']);
     }
 
     return response;

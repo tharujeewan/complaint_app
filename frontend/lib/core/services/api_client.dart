@@ -53,7 +53,7 @@ class ApiClientImpl implements IApiClient {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true) {
-          await _tokenService.saveTokens(data['token'], data['refreshToken']);
+          await _tokenService.saveTokens(data['accessToken'], data['refreshToken']);
           return true;
         }
       }

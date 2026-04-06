@@ -14,19 +14,20 @@ const {
   updateUserSchema,
   refreshTokenSchema,
 } = require('./auth.validator');
+const { authLimiter } = require('../../middlewares/rateLimit.middleware');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Public routes — no token required
 // ─────────────────────────────────────────────────────────────────────────────
 
 // POST /api/auth/register
-router.post('/register', validate(registerSchema), register);
+router.post('/register', authLimiter, validate(registerSchema), register);
 
 // POST /api/auth/login
-router.post('/login', validate(loginSchema), login);
+router.post('/login', authLimiter, validate(loginSchema), login);
 
 // POST /api/auth/refresh — validate body then rotate tokens
-router.post('/refresh', validate(refreshTokenSchema), refreshTokenHandler);
+router.post('/refresh', authLimiter, validate(refreshTokenSchema), refreshTokenHandler);
 
 // POST /api/auth/logout
 // No protect — access token may be expired at logout time, refresh token is enough
