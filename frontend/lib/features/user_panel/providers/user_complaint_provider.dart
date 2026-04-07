@@ -17,6 +17,14 @@ class UserComplaintProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
   List<ComplaintModel> get complaints => _complaints;
 
+  /// Count of non-resolved complaints (pending + in progress)
+  int get activeCount =>
+      _complaints.where((c) => c.status != 'resolved').length;
+
+  /// Count of resolved complaints
+  int get resolvedCount =>
+      _complaints.where((c) => c.status == 'resolved').length;
+
   void clearError() {
     if (_errorMessage != null) {
       _errorMessage = null;

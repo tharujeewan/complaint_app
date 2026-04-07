@@ -205,26 +205,30 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   // ── Stats Row ──────────────────────────────────────────
   Widget _buildStatsRow() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.groups_outlined,
-            label: 'ACTIVE ISSUES',
-            count: '24',
-            iconColor: AppColors.primaryTeal,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.check_box_outlined,
-            label: 'RESOLVED',
-            count: '142',
-            iconColor: AppColors.success,
-          ),
-        ),
-      ],
+    return Consumer<UserComplaintProvider>(
+      builder: (context, provider, _) {
+        return Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                icon: Icons.groups_outlined,
+                label: 'ACTIVE ISSUES',
+                count: '${provider.activeCount}',
+                iconColor: AppColors.primaryTeal,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                icon: Icons.check_box_outlined,
+                label: 'RESOLVED',
+                count: '${provider.resolvedCount}',
+                iconColor: AppColors.success,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
