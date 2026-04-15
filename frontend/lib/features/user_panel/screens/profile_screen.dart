@@ -4,6 +4,8 @@ import '../../../core/constants/colors.dart';
 import '../../../app/routes.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../widgets/custom_info_card.dart';
+import 'my_complaints_screen.dart';
+import '../../notifications/screens/notification_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -78,12 +80,22 @@ class ProfileScreen extends StatelessWidget {
             _buildMenuItem(
               icon: Icons.list_alt_outlined,
               title: 'My Complaints',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MyComplaintsScreen()),
+                );
+              },
             ),
             _buildMenuItem(
               icon: Icons.notifications_outlined,
               title: 'Notifications',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const NotificationScreen()),
+                );
+              },
             ),
             _buildMenuItem(
               icon: Icons.settings_outlined,

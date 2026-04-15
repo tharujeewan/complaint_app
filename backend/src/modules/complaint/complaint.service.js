@@ -1,6 +1,8 @@
 const Complaint = require('./complaint.model');
 const { addNotificationJob } = require('../notification/notification.service');
 
+const { Op } = require('sequelize');
+
 const createComplaint = async ({ title, description, user_id, location, photo }) => {
   const complaint = await Complaint.create({
     title,
@@ -24,8 +26,25 @@ const createComplaint = async ({ title, description, user_id, location, photo })
   return complaint;
 };
 
-const getAllComplaints = async () => {
-  return await Complaint.findAll();
+const getAllComplaints = async ({ search, status } = {}) => {
+  const whereClause = {};
+
+  if (status && status !== 'all') {
+    whereClause.status = status.toLowerCase();
+  }
+
+  if (search) {
+    whereClause[Op.or] = [
+      { title: { [Op.iLike]: `%${search}%` } },
+      { description: { [Op.iLike]: `%${search}%` } },
+      { location: { [Op.iLike]: `%${search}%` } }
+    ];
+  }
+
+  return await Complaint.findAll({
+    where: whereClause,
+    order: [['created_at', 'DESC']]
+  });
 };
 
 const updateComplaintStatus = async (id, status) => {

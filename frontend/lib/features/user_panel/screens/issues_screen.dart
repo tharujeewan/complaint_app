@@ -30,34 +30,64 @@ class IssuesScreen extends StatelessWidget {
               context.read<UserComplaintProvider>().fetchMyComplaints();
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.filter_list, color: Colors.white),
-            onPressed: () {},
+          Consumer<UserComplaintProvider>(
+            builder: (context, provider, child) {
+              return PopupMenuButton<String>(
+                icon: const Icon(Icons.filter_list, color: Colors.white),
+                onSelected: (value) {
+                  provider.setFilterStatus(value);
+                },
+                itemBuilder: (BuildContext context) {
+                  return [
+                    const {'val': 'all', 'label': 'All'},
+                    const {'val': 'pending', 'label': 'Pending'},
+                    const {'val': 'in progress', 'label': 'In Progress'},
+                    const {'val': 'resolved', 'label': 'Resolved'},
+                  ].map((item) {
+                    final status = item['val']!;
+                    final label = item['label']!;
+                    final isSelected = provider.filterStatus == status;
+                    return PopupMenuItem<String>(
+                      value: status,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(label),
+                          if (isSelected) const Icon(Icons.check, size: 18, color: AppColors.primaryTeal),
+                        ],
+                      ),
+                    );
+                  }).toList();
+                },
+              );
+            },
           ),
         ],
       ),
       body: Consumer<UserComplaintProvider>(
         builder: (context, provider, child) {
-          if (provider.isLoading && provider.complaints.isEmpty) {
+          final list = provider.filteredComplaints;
+          
+          if (provider.isLoading && list.isEmpty) {
             return const Center(child: CircularProgressIndicator());
-          } else if (provider.errorMessage != null && provider.complaints.isEmpty) {
+          } else if (provider.errorMessage != null && list.isEmpty) {
             return Center(
               child: Text(
                 provider.errorMessage!,
                 style: const TextStyle(color: AppColors.warning),
               ),
             );
-          } else if (provider.complaints.isEmpty) {
-            return const Center(child: Text('No complaints found.'));
+          } else if (list.isEmpty) {
+            return const Center(child: Text('No active issues found.'));
           }
 
           return RefreshIndicator(
             onRefresh: () => provider.fetchMyComplaints(),
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: provider.complaints.length,
+              itemCount: list.length,
               itemBuilder: (context, index) {
-                return ComplaintCard(complaint: provider.complaints[index]);
+                return ComplaintCard(complaint: list[index]);
               },
             ),
           );

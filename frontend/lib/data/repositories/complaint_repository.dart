@@ -5,7 +5,7 @@ import '../../core/exceptions/typed_exceptions.dart';
 import '../../core/models/api_response.dart';
 
 abstract class IComplaintRepository {
-  Future<List<ComplaintModel>> getMyComplaints({int page = 1, int limit = 20});
+  Future<List<ComplaintModel>> getMyComplaints({int page = 1, int limit = 20, String? search, String? status});
   Future<ApiResponse<ComplaintModel>> getComplaintById(int id);
   Future<ApiResponse<ComplaintModel>> createComplaint({
     required String title,
@@ -22,10 +22,15 @@ class ComplaintRepositoryImpl implements IComplaintRepository {
   ComplaintRepositoryImpl(this._apiClient);
 
   @override
-  Future<List<ComplaintModel>> getMyComplaints({int page = 1, int limit = 20}) async {
-    // Current backend doesn't seem to support pagination via query params yet in get '/complaints', 
-    // but we pass them for future-proofing as requested.
-    final res = await _apiClient.get('/complaints?page=$page&limit=$limit');
+  Future<List<ComplaintModel>> getMyComplaints({int page = 1, int limit = 20, String? search, String? status}) async {
+    String url = '/complaints?page=$page&limit=$limit';
+    if (search != null && search.isNotEmpty) {
+      url += '&search=${Uri.encodeComponent(search)}';
+    }
+    if (status != null && status != 'all') {
+      url += '&status=${Uri.encodeComponent(status)}';
+    }
+    final res = await _apiClient.get(url);
     
     if (res.statusCode == 401) throw UnauthorizedException();
     if (res.statusCode >= 500) throw ServerException('Failed to fetch complaints');

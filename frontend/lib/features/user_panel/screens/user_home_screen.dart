@@ -27,12 +27,20 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     ProfileScreen(),
   ];
 
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<UserComplaintProvider>().fetchMyComplaints();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -118,17 +126,17 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
             // Stats Row
             _buildStatsRow(),
-            const SizedBox(height: 20),
-
             // Complaints List
             Consumer<UserComplaintProvider>(
               builder: (context, provider, child) {
-                if (provider.isLoading && provider.complaints.isEmpty) {
+                final list = provider.searchedComplaints;
+
+                if (provider.isLoading && list.isEmpty) {
                   return const Center(child: Padding(
                     padding: EdgeInsets.all(20.0),
                     child: CircularProgressIndicator(),
                   ));
-                } else if (provider.errorMessage != null && provider.complaints.isEmpty) {
+                } else if (provider.errorMessage != null && list.isEmpty) {
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
@@ -138,7 +146,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                       ),
                     ),
                   );
-                } else if (provider.complaints.isEmpty) {
+                } else if (list.isEmpty) {
                   return const Center(
                     child: Padding(
                       padding: EdgeInsets.all(20.0),
@@ -146,9 +154,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     ),
                   );
                 }
-                
+
                 return Column(
-                  children: provider.complaints
+                  children: list
                     .take(5)
                     .map((c) => ComplaintCard(complaint: c))
                     .toList(),
@@ -178,6 +186,12 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         ],
       ),
       child: TextField(
+        controller: _searchController,
+        textInputAction: TextInputAction.search,
+        onSubmitted: (v) {
+          FocusScope.of(context).unfocus();
+          context.read<UserComplaintProvider>().setSearchQuery(v);
+        },
         decoration: InputDecoration(
           isDense: true, 
           hintText: 'Search complaints',
@@ -185,9 +199,24 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             color: AppColors.textSecondary.withOpacity(0.7),
             fontSize: 15,
           ),
-          prefixIcon: const Icon(
-            Icons.search,
-            color: AppColors.textSecondary,
+          suffixIcon: context.watch<UserComplaintProvider>().searchQuery.isNotEmpty 
+              ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    _searchController.clear();
+                    context.read<UserComplaintProvider>().setSearchQuery('');
+                  },
+                )
+              : null,
+          prefixIcon: IconButton(
+            icon: const Icon(
+              Icons.search,
+              color: AppColors.textSecondary,
+            ),
+            onPressed: () {
+              FocusScope.of(context).unfocus();
+              context.read<UserComplaintProvider>().setSearchQuery(_searchController.text);
+            },
           ),
           prefixIconConstraints: const BoxConstraints(
             minWidth: 40,
@@ -199,6 +228,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             vertical: 10, 
           ),
         ),
+        onChanged: (v) => context.read<UserComplaintProvider>().setSearchQuery(v),
       ),
     );
   }

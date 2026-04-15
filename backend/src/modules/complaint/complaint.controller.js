@@ -16,7 +16,8 @@ const create = async (req, res, next) => {
 
 const getAll = async (req, res, next) => {
   try {
-    const complaints = await getAllComplaints();
+    const { search, status } = req.query;
+    const complaints = await getAllComplaints({ search, status });
     res.status(200).json({ success: true, complaints });
   } catch (error) {
     error.statusCode = 500;
