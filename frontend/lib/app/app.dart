@@ -11,7 +11,7 @@ class LocalCareApp extends StatelessWidget {
       title: 'LocalCare',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      initialRoute: AppRoutes.login,
+      initialRoute: AppRoutes.splash,
       onGenerateRoute: AppRoutes.generateRoute,
     );
   }

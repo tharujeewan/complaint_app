@@ -22,10 +22,10 @@ class NotificationModel {
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     return NotificationModel(
       id: json['id'] ?? 0,
-      title: json['title'] ?? '',
+      title: json['type'] != null ? json['type'].toString().toUpperCase() : 'Notification',
       message: json['message'] ?? '',
-      isRead: json['is_read'] ?? false,
-      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
+      isRead: json['isRead'] ?? json['is_read'] ?? false,
+      createdAt: DateTime.tryParse(json['createdAt'] ?? json['created_at'] ?? '') ?? DateTime.now(),
     );
   }
 }

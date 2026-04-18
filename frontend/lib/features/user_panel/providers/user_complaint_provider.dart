@@ -11,8 +11,8 @@ class UserComplaintProvider with ChangeNotifier {
   String? _errorMessage;
   
   List<ComplaintModel> _allComplaints = [];
-  List<ComplaintModel> _searchedList = [];
   List<ComplaintModel> _filteredList = [];
+  List<ComplaintModel> _searchedList = [];
   String _searchQuery = '';
   Timer? _debounce;
 
@@ -201,5 +201,14 @@ class UserComplaintProvider with ChangeNotifier {
 
       notifyListeners();
     }
+  }
+
+  void clear() {
+    _allComplaints = [];
+    _searchedList = [];
+    _filteredList = [];
+    _searchQuery = '';
+    _filterStatus = 'all';
+    notifyListeners();
   }
 }

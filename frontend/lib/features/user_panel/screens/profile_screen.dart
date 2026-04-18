@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/colors.dart';
 import '../../../app/routes.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../auth/providers/user_profile_provider.dart';
+import '../../notifications/providers/notification_provider.dart';
+import '../providers/user_complaint_provider.dart';
 import '../widgets/custom_info_card.dart';
 import 'my_complaints_screen.dart';
 import '../../notifications/screens/notification_screen.dart';
@@ -12,8 +15,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final user = authProvider.user;
+    final profileProvider = Provider.of<UserProfileProvider>(context);
+    final user = profileProvider.user;
     final userName = user?.name ?? 'Loading...';
     final userEmail = user?.email ?? 'Loading...';
 
@@ -112,7 +115,15 @@ class ProfileScreen extends StatelessWidget {
               title: 'Logout',
               onTap: () async {
                 final auth = Provider.of<AuthProvider>(context, listen: false);
+                final profile = Provider.of<UserProfileProvider>(context, listen: false);
+                final complaints = Provider.of<UserComplaintProvider>(context, listen: false);
+                final notifications = Provider.of<NotificationProvider>(context, listen: false);
+                
                 await auth.logout();
+                profile.clearProfile();
+                complaints.clear();
+                notifications.clear();
+                
                 if (context.mounted) {
                   Navigator.pushReplacementNamed(context, AppRoutes.login);
                 }

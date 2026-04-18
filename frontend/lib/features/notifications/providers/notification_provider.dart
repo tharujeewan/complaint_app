@@ -106,4 +106,9 @@ class NotificationProvider with ChangeNotifier {
       }
     }
   }
+
+  void clear() {
+    _notifications = [];
+    notifyListeners();
+  }
 }
