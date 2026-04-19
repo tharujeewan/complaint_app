@@ -88,7 +88,14 @@ class _SignupScreenState extends State<SignupScreen> {
                 isPassword: true,
                 isPasswordVisible: _isPasswordVisible,
                 onTogglePassword: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
-                validator: (v) => v!.length < 6 ? 'Min 6 chars' : null,
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Password is required';
+                  if (v.length < 8) return 'Password must be at least 8 characters';
+                  if (!RegExp(r'[A-Z]').hasMatch(v)) return 'Must contain at least one uppercase letter';
+                  if (!RegExp(r'[a-z]').hasMatch(v)) return 'Must contain at least one lowercase letter';
+                  if (!RegExp(r'\d').hasMatch(v)) return 'Must contain at least one number';
+                  return null;
+                },
               ),
 
               CustomTextField(

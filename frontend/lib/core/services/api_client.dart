@@ -64,8 +64,9 @@ class ApiClientImpl implements IApiClient {
   }
 
   Future<T> _handleRequest<T>(
-    Future<T> Function(Map<String, String>) requestFunc,
-  ) async {
+    Future<T> Function(Map<String, String>) requestFunc, {
+    bool skipRefresh = false,
+  }) async {
     try {
       final headers = await _getHeaders();
       var response = await requestFunc(headers);
@@ -78,7 +79,8 @@ class ApiClientImpl implements IApiClient {
         isUnauthorized = true;
       }
 
-      if (isUnauthorized) {
+      // Skip refresh for auth endpoints (login/register/refresh) — the 401 is a real auth error
+      if (isUnauthorized && !skipRefresh) {
         final refreshSuccess = await _refreshToken();
 
         if (refreshSuccess) {
@@ -97,12 +99,16 @@ class ApiClientImpl implements IApiClient {
     }
   }
 
+  // Auth endpoints that should NOT trigger token refresh on 401
+  static const _authEndpoints = ['/auth/login', '/auth/register', '/auth/refresh'];
+
   @override
   Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
+    final skip = _authEndpoints.any((e) => endpoint.startsWith(e));
     return _handleRequest((headers) async {
       final url = Uri.parse('$baseUrl$endpoint');
       return await http.post(url, headers: headers, body: jsonEncode(body));
-    });
+    }, skipRefresh: skip);
   }
 
   @override

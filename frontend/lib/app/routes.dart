@@ -3,7 +3,7 @@ import '../features/auth/screens/splash_screen.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/signup_screen.dart';
 import '../features/user_panel/screens/user_home_screen.dart';
-import '../features/admin_panel/screens/admin_dashboard_screen.dart';
+import '../features/admin_panel/screens/admin_shell.dart';
 
 class AppRoutes {
   // Auth
@@ -28,7 +28,7 @@ class AppRoutes {
       case userHome:
         return MaterialPageRoute(builder: (_) => const UserHomeScreen());
       case adminDashboard:
-        return MaterialPageRoute(builder: (_) => const AdminDashboardScreen());
+        return MaterialPageRoute(builder: (_) => const AdminShell());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(
