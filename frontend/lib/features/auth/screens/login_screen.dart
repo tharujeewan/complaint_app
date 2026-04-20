@@ -5,6 +5,7 @@ import '../../../core/widgets/custom_textfield.dart';
 import '../../../app/routes.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/user_profile_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -28,6 +29,10 @@ class _LoginScreenState extends State<LoginScreen> {
       
       if (mounted) {
         if (success) {
+          if (authProvider.user != null) {
+            Provider.of<UserProfileProvider>(context, listen: false)
+                .setProfile(authProvider.user!);
+          }
           if (authProvider.user?.role?.toLowerCase() == 'admin') {
             Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard);
           } else {

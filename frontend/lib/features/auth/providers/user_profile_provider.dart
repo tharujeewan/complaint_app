@@ -50,6 +50,13 @@ class UserProfileProvider with ChangeNotifier {
     }
   }
 
+  void setProfile(UserModel user) {
+    _user = user;
+    _isLoading = false;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   void clearProfile() {
     _user = null;
     notifyListeners();
