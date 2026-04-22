@@ -8,6 +8,7 @@ import '../../notifications/providers/notification_provider.dart';
 import '../providers/user_complaint_provider.dart';
 import '../widgets/custom_info_card.dart';
 import 'my_complaints_screen.dart';
+import 'edit_profile.dart';
 import '../../notifications/screens/notification_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -78,7 +79,12 @@ class ProfileScreen extends StatelessWidget {
             _buildMenuItem(
               icon: Icons.person_outline,
               title: 'Edit Profile',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                );
+              },
             ),
             _buildMenuItem(
               icon: Icons.list_alt_outlined,

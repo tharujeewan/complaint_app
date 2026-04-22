@@ -61,4 +61,26 @@ class UserProfileProvider with ChangeNotifier {
     _user = null;
     notifyListeners();
   }
+
+  Future<bool> updateProfile(int id, Map<String, dynamic> updates) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      
+      final res = await _repository.updateProfile(id, updates);
+      if (res.success && res.data != null) {
+        _user = res.data;
+        return true;
+      }
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

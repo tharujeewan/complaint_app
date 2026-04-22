@@ -10,6 +10,7 @@ abstract class IAuthRepository {
   Future<ApiResponse<String>> register(String name, String email, String password);
   Future<void> logout();
   Future<ApiResponse<UserModel>> getProfile();
+  Future<ApiResponse<UserModel>> updateProfile(int id, Map<String, dynamic> updates);
 }
 
 class AuthRepositoryImpl implements IAuthRepository {
@@ -73,6 +74,32 @@ class AuthRepositoryImpl implements IAuthRepository {
 
     if (res.statusCode == 401) throw UnauthorizedException('Session expired');
     if (res.statusCode == 404) throw NotFoundException('User not found');
+    if (res.statusCode >= 500) throw ServerException();
+
+    final data = jsonDecode(res.body);
+    return ApiResponse<UserModel>.fromJson(
+      data,
+      (json) => UserModel.fromJson(data['user']),
+    );
+  }
+
+  @override
+  Future<ApiResponse<UserModel>> updateProfile(int id, Map<String, dynamic> updates) async {
+    final res = await _apiClient.put('/auth/$id', updates);
+
+    if (res.statusCode == 401) throw UnauthorizedException('Session expired');
+    if (res.statusCode == 404) throw NotFoundException('User not found');
+    if (res.statusCode == 403) throw UnauthorizedException('Forbidden');
+    if (res.statusCode == 400) {
+      String errorMessage = 'Invalid update data';
+      try {
+        final errorData = jsonDecode(res.body);
+        if (errorData['message'] != null) {
+          errorMessage = errorData['message'];
+        }
+      } catch (_) {}
+      throw BadRequestException(errorMessage);
+    }
     if (res.statusCode >= 500) throw ServerException();
 
     final data = jsonDecode(res.body);

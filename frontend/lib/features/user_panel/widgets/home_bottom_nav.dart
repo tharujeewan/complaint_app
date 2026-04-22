@@ -42,7 +42,7 @@ class HomeBottomNav extends StatelessWidget {
         BottomNavigationBarItem(
           icon: Icon(Icons.person_outline),
           activeIcon: Icon(Icons.person),
-          label: 'Account',
+          label: 'Profile',
         ),
       ],
     );
