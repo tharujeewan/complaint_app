@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/colors.dart';
 import '../../../shared/models/complaint_model.dart';
 import '../providers/admin_complaint_provider.dart';
+import 'complaint_screen.dart';
 
 class AdminHomeTab extends StatelessWidget {
   const AdminHomeTab({super.key});
@@ -43,7 +44,8 @@ class AdminHomeTab extends StatelessWidget {
               Container(
                 color: Colors.white,
                 child: TabBar(
-                  isScrollable: false,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
                   labelColor: AppColors.primaryTeal,
                   unselectedLabelColor: AppColors.textSecondary,
                   indicatorColor: AppColors.primaryTeal,
@@ -198,8 +200,18 @@ class _AdminComplaintCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 2,
       shadowColor: Colors.black.withOpacity(0.08),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AdminComplaintScreen(initialComplaint: complaint),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -220,10 +232,10 @@ class _AdminComplaintCard extends StatelessWidget {
                     color: _statusColor(currentStatus).withOpacity(0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Text(
-                    '#${complaint.id}',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _statusColor(currentStatus)),
-                  ),
+                  // child: Text(
+                  //   '#${complaint.id}',
+                  //   style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: _statusColor(currentStatus)),
+                  // ),
                 ),
               ],
             ),
@@ -300,6 +312,7 @@ class _AdminComplaintCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

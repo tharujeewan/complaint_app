@@ -5,7 +5,6 @@ import '../providers/user_complaint_provider.dart';
 import '../widgets/complaint_card.dart';
 import '../widgets/home_bottom_nav.dart';
 import 'issues_screen.dart';
-import 'map_screen.dart';
 import 'profile_screen.dart';
 import 'create_complaint_screen.dart';
 
@@ -19,11 +18,10 @@ class UserHomeScreen extends StatefulWidget {
 class _UserHomeScreenState extends State<UserHomeScreen> {
   int _currentIndex = 0;
 
-  // Tab screens (Issues, Map, Account are separate screens)
+  // Tab screens (Issues, Account are separate screens)
   final List<Widget> _screens = const [
     SizedBox.shrink(), // Home content handled separately below
     IssuesScreen(),
-    MapScreen(),
     ProfileScreen(),
   ];
 

@@ -35,11 +35,6 @@ class HomeBottomNav extends StatelessWidget {
           label: 'Issues',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.map_outlined),
-          activeIcon: Icon(Icons.map),
-          label: 'Map',
-        ),
-        BottomNavigationBarItem(
           icon: Icon(Icons.person_outline),
           activeIcon: Icon(Icons.person),
           label: 'Profile',
